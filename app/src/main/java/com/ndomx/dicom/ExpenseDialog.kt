@@ -6,9 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.LayoutInflater
+import android.view.View
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
+import kotlinx.android.synthetic.main.expense_dialog.view.*
 import java.lang.IllegalStateException
+import java.util.*
 
 class ExpenseDialog : DialogFragment()
 {
@@ -19,8 +22,6 @@ class ExpenseDialog : DialogFragment()
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog
     {
-        val vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
-
         return activity?.let {
             val builder = AlertDialog.Builder(it)
             val view = LayoutInflater.from(it).inflate(R.layout.expense_dialog, null)
@@ -28,7 +29,7 @@ class ExpenseDialog : DialogFragment()
             builder
                 .setView(view)
                 .setTitle("Create expense")
-                .setPositiveButton("OK") { _, _ -> pickContacts() }
+                .setPositiveButton("OK") { _, _ -> createExpense(view) }
                 .setNegativeButton("Cancel") {dialog, _ -> dialog.cancel() }
                 .create()
 
@@ -40,5 +41,21 @@ class ExpenseDialog : DialogFragment()
         val contactIntent = Intent(Intent.ACTION_PICK)
         contactIntent.setDataAndType(ContactsContract.Contacts.CONTENT_URI, ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE)
         startActivityForResult(contactIntent, MainActivity.PICK_CONTACT_CODE)
+    }
+
+    private fun createExpense(view: View)
+    {
+        val netAmount = view.input_amount.text.toString().toInt() * (if (view.user_paid.isChecked) 1 else -1)
+
+        val vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
+        vm.selectedExpense = Expense(
+            title = view.input_title.text.toString(),
+            description = view.input_description.text.toString(),
+            amount = netAmount,
+            date = Calendar.getInstance().time,
+            contactId = ""
+        )
+
+        pickContacts()
     }
 }

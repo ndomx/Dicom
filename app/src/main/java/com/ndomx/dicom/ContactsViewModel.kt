@@ -3,7 +3,7 @@ package com.ndomx.dicom
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 class ContactsViewModel(application: Application) : AndroidViewModel(application)
 {
@@ -11,18 +11,36 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
     {
         private const val TAG = "ContactsViewModel"
     }
+    private val db = DicomDatabase.getInstance(getApplication())
 
-    fun contactList(): LiveData<List<Contact>>
+    var selectedExpense: Expense? = null
+
+    val totalAmount = db.expensesDao.getTotalAmount()
+    val contactList = db.contactsDao.getAllContacts()
+
+    fun getAmount(contact: Contact): Int
     {
-        val db = DicomDatabase.getInstance(getApplication())
-        return db.contactsDao.getAllContacts()
+        return db.getAmountByContact(contact)
     }
 
-    fun addContact(name: String, phone: String)
+    fun createExpense(name: String, phone: String)
     {
-        val db = DicomDatabase.getInstance(getApplication())
-        db.contactsDao.addContact(Contact(name, phone))
+        when (selectedExpense)
+        {
+            null -> {
+                Log.e(TAG, "selectedExpense is null")
+                return
+            }
+            else -> Log.i(TAG, "Creating valid expense")
+        }
 
-        Log.i(TAG, db.contactsDao.listLenght().toString())
+        db.contactsDao.addContacts(Contact(name, phone))
+
+        selectedExpense?.apply {
+            contactId = phone
+            db.expensesDao.addExpenses(this)
+        }
     }
+
+
 }

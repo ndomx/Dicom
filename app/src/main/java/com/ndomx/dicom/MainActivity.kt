@@ -12,11 +12,15 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.LinearLayoutManager
 
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 
-class MainActivity : AppCompatActivity()
+class MainActivity : AppCompatActivity(), LifecycleOwner
 {
     companion object
     {
@@ -38,6 +42,13 @@ class MainActivity : AppCompatActivity()
         checkPermissions()
 
         vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
+
+        val adapter = ContactsAdapter(vm)
+        contact_list.adapter = adapter
+        contact_list.layoutManager = LinearLayoutManager(this)
+
+        vm.contactList.observe(this, Observer { adapter.contacts = it })
+        vm.totalAmount.observe(this, Observer { Log.i(TAG, "total amount = $it") })
 
         fab.setOnClickListener { createExpense() }
     }
@@ -79,7 +90,7 @@ class MainActivity : AppCompatActivity()
             val name = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
             val number = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
 
-            vm.addContact(name, number)
+            vm.createExpense(name, number)
 
             close()
         }

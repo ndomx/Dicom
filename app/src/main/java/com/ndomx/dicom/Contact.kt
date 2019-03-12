@@ -24,13 +24,18 @@ interface ContactsDao
     fun listLenght(): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun addContact(contact: Contact)
+    fun addContacts(vararg contacts: Contact)
+
+    @Delete
+    fun deleteContacts(vararg contacts: Contact)
 }
 
-@Database(entities = [Contact::class], version = 1, exportSchema = false)
+@Database(entities = [Contact::class, Expense::class], version = 1, exportSchema = false)
+@TypeConverters(Converters::class)
 abstract class DicomDatabase : RoomDatabase()
 {
     abstract val contactsDao: ContactsDao
+    abstract val expensesDao: ExpensesDao
 
     companion object
     {
@@ -51,5 +56,22 @@ abstract class DicomDatabase : RoomDatabase()
 
             return INSTANCE!!
         }
+    }
+
+    fun getExpensesByContact(contact: Contact): List<Expense>
+    {
+        return expensesDao.getAllExpenses(contact.phone)
+    }
+
+    fun getAmountByContact(contact: Contact): Int
+    {
+        return expensesDao.getAmount(contact.phone)
+    }
+
+    fun deleteContact(contact: Contact)
+    {
+        val expenses = getExpensesByContact(contact)
+        expensesDao.deleteExpenses(*expenses.toTypedArray())
+        contactsDao.deleteContacts(contact)
     }
 }
