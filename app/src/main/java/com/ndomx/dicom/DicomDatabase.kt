@@ -53,4 +53,14 @@ abstract class DicomDatabase : RoomDatabase()
         expensesDao.deleteExpenses(*expenses.toTypedArray())
         contactsDao.deleteContacts(contact)
     }
+
+    fun addContacts(contacts: List<Contact>)
+    {
+        contactsDao.addContacts(*contacts.toTypedArray())
+    }
+
+    fun addExpenses(expenses: List<Expense>)
+    {
+        expensesDao.addExpenses(*expenses.toTypedArray())
+    }
 }

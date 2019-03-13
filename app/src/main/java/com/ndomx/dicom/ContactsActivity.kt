@@ -1,25 +1,32 @@
 package com.ndomx.dicom
 
+import android.app.Activity
+import android.content.Intent
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 
 import kotlinx.android.synthetic.main.activity_contacts.*
 import kotlinx.android.synthetic.main.content_contacts.*
 
-class ContactsActivity : AppCompatActivity()
+class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.DialogListener
 {
     companion object
     {
         private const val TAG = "ContactsActivity"
+        private const val EXPENSE_DIALOG_TAG = "ExpenseCreatorTag"
     }
 
     private lateinit var adapter: ContactsAdapter
+    private lateinit var vm: ContactsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -27,21 +34,29 @@ class ContactsActivity : AppCompatActivity()
         setContentView(R.layout.activity_contacts)
         setSupportActionBar(toolbar)
 
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        adapter = ContactsAdapter()
+        vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
+
+        adapter = ContactsAdapter(vm)
         contact_list.adapter = adapter
         contact_list.layoutManager = LinearLayoutManager(this)
+
+        vm.count.observe(this, Observer { updateCount(it) })
     }
 
     override fun onStart()
     {
         super.onStart()
         getContacts()
+    }
+
+    private fun updateCount(count: Int?)
+    {
+        /*
+        labelText = "Selected ${count ?: 0}"
+         */
+        adapter.notifyDataSetChanged()
     }
 
     private fun getContacts()
@@ -66,7 +81,7 @@ class ContactsActivity : AppCompatActivity()
                     moveToFirst()
                     number = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
 
-                    adapter.contacts.add(Contact(name, number))
+                    vm.contacts.add(Contact(name, number))
 
                     close()
                 }
@@ -80,7 +95,15 @@ class ContactsActivity : AppCompatActivity()
 
     private fun showExpenseDialog()
     {
-        Log.i(TAG, "Create dialog")
+        if (vm.selectedContacts.isEmpty())
+        {
+            Snackbar.make(coordinator_contacts, "Select at least one contact", Snackbar.LENGTH_SHORT).show()
+        }
+        else
+        {
+            val expenseDialog = ExpenseDialog()
+            expenseDialog.show(supportFragmentManager, EXPENSE_DIALOG_TAG)
+        }
     }
 
     // region MENU
@@ -99,4 +122,15 @@ class ContactsActivity : AppCompatActivity()
     }
     // endregion
 
+    override fun chooseDate()
+    {
+        TODO("not implemented")
+    }
+
+    override fun saveExpense(title: String, description: String, amount: Int)
+    {
+        vm.saveExpense(title, description, amount)
+        setResult(Activity.RESULT_OK)
+        finish()
+    }
 }
