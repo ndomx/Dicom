@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import java.util.*
 
 @Database(entities = [Contact::class, Expense::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
@@ -45,6 +46,16 @@ abstract class DicomDatabase : RoomDatabase()
     fun getAmountByContact(contact: Contact): Int
     {
         return expensesDao.getAmount(contact.phone)
+    }
+
+    fun getOldestExpenseDate(contact: Contact): Date
+    {
+        return expensesDao.getOldestExpenseDate(contact.phone)
+    }
+
+    fun getNewestExpenseDate(contact: Contact): Date
+    {
+        return expensesDao.getNewestExpenseDate(contact.phone)
     }
 
     fun deleteContact(contact: Contact)

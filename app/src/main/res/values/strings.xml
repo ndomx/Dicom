@@ -9,4 +9,6 @@
     <string name="user_paid">You paid</string>
     <string name="title_activity_contacts">ContactsActivity</string>
     <string name="action_next">Next</string>
+    <string name="share">Share</string>
+    <string name="sort_list">Sort list</string>
 </resources>

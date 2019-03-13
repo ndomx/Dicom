@@ -1,7 +1,6 @@
 package com.ndomx.dicom
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import java.util.*
@@ -33,9 +32,8 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         val expenses = mutableListOf<Expense>()
         val date = Calendar.getInstance().time
 
-        for (contact: Contact in selectedContacts)
-        {
-            expenses.add(Expense(title, description, contact.phone, amount, date))
+        selectedContacts.forEach {
+            expenses.add(Expense(title, description, it.phone, amount, date))
         }
 
         db.addExpenses(expenses)

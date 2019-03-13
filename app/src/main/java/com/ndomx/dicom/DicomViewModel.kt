@@ -14,9 +14,6 @@ class DicomViewModel(application: Application) : AndroidViewModel(application)
     }
     private val db = DicomDatabase.getInstance(getApplication())
 
-    var selectedExpense: Expense? = null
-
-    var selectedContact = MutableLiveData<Contact>()
     val totalAmount = db.expensesDao.getTotalAmount()
     val contactList = db.contactsDao.getAllContacts()
 
@@ -25,29 +22,14 @@ class DicomViewModel(application: Application) : AndroidViewModel(application)
         return db.getAmountByContact(contact)
     }
 
-    fun createExpense(name: String, phone: String)
+    fun oldestExpense(contact: Contact): Long
     {
-        when (selectedExpense)
-        {
-            null -> {
-                Log.e(TAG, "selectedExpense is null")
-                return
-            }
-            else -> Log.i(TAG, "Creating valid expense")
-        }
-
-        db.contactsDao.addContacts(Contact(name, phone))
-
-        selectedExpense?.apply {
-            contactId = phone
-            db.expensesDao.addExpenses(this)
-        }
+        return db.getOldestExpenseDate(contact).time
     }
 
-    fun createExpense(contact: Contact, title: String, description: String, amount: Int, date: Date)
+    fun newestExpense(contact: Contact): Long
     {
-        db.contactsDao.addContacts(contact)
-        db.expensesDao.addExpenses(Expense(title, description, contact.phone, amount, date))
+        return db.getNewestExpenseDate(contact).time
     }
 
 

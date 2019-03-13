@@ -13,8 +13,8 @@ class DicomAdapter(private val vm: DicomViewModel): RecyclerView.Adapter<DicomAd
 {
     var contacts: List<Contact> = listOf()
     set(value) {
-        notifyDataSetChanged()
         field = value
+        notifyDataSetChanged()
     }
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view)

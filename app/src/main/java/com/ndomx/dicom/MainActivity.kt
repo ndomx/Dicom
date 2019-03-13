@@ -20,17 +20,19 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
-class MainActivity : AppCompatActivity(), LifecycleOwner
+class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.DialogListener
 {
     companion object
     {
         private const val TAG = "MainActivity"
         private const val READ_CONTACTS_REQUEST_CODE = 76
+        private const val SHOW_SORTING_OPTIONS = "sorting-options"
 
         const val CREATE_EXPENSE_CODE = 32
     }
 
     private lateinit var vm: DicomViewModel
+    private lateinit var adapter: DicomAdapter
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -38,18 +40,29 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
 
+        supportActionBar?.title = "DICOM"
+
         checkPermissions()
 
         vm = ViewModelProviders.of(this).get(DicomViewModel::class.java)
 
-        val adapter = DicomAdapter(vm)
+        adapter = DicomAdapter(vm)
         contact_list.adapter = adapter
         contact_list.layoutManager = LinearLayoutManager(this)
 
         vm.contactList.observe(this, Observer { adapter.contacts = it })
-        vm.totalAmount.observe(this, Observer { Log.i(TAG, "total amount = $it") })
+        vm.totalAmount.observe(this, Observer { updateActionBar(it) })
 
         fab.setOnClickListener { startExpenseCreator() }
+    }
+
+    private fun updateActionBar(amount: Int?)
+    {
+        supportActionBar?.subtitle = when (amount) {
+            0 -> "No expenses yet"
+            null -> "No expenses yet"
+            else -> "Total amount: $amount"
+        }
     }
 
     private fun checkPermissions()
@@ -64,6 +77,28 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
     private fun startExpenseCreator()
     {
         startActivityForResult(Intent(this, ContactsActivity::class.java), CREATE_EXPENSE_CODE)
+    }
+
+    private fun showSortListMenu()
+    {
+        val sortContactsDialog = SortContactsDialog()
+        sortContactsDialog.show(supportFragmentManager, SHOW_SORTING_OPTIONS)
+    }
+
+    override fun optionSelected(index: Int)
+    {
+        Log.i(TAG, "index = $index")
+
+        adapter.contacts = when (index) {
+            0 -> adapter.contacts.sortedBy { it.name }
+            1 -> adapter.contacts.sortedByDescending { it.name }
+            2 -> adapter.contacts.sortedBy { vm.newestExpense(it) }
+            3 -> adapter.contacts.sortedByDescending { vm.oldestExpense(it) }
+            4 -> adapter.contacts.sortedBy { vm.getAmount(it) }
+            else -> adapter.contacts.sortedByDescending { vm.getAmount(it) }
+        }
+
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
@@ -89,10 +124,13 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean
     {
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        when (item.itemId) {
+            R.id.action_settings -> return true
+            R.id.action_sort -> showSortListMenu()
+            else -> return super.onOptionsItemSelected(item)
         }
+
+        return true
     }
     // endregion
 }

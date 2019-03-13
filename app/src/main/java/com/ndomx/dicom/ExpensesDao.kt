@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import java.util.*
 
 @Dao
 interface ExpensesDao
@@ -38,6 +39,12 @@ interface ExpensesDao
 
     @Query("SELECT COUNT() FROM expenses WHERE contactId = :phone")
     fun numberOfExpenses(phone: String): Int
+
+    @Query("SELECT date FROM expenses WHERE contactId = :phone ORDER BY date ASC LIMIT 1")
+    fun getOldestExpenseDate(phone: String): Date
+
+    @Query("SELECT date FROM expenses WHERE contactId = :phone ORDER BY date DESC LIMIT 1")
+    fun getNewestExpenseDate(phone: String): Date
 
     @Insert
     fun addExpenses(vararg expenses: Expense): List<Long>
