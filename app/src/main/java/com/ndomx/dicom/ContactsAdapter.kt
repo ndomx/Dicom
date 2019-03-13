@@ -9,20 +9,39 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.contact_view.view.*
 
-class ContactsAdapter(private val vm: ContactsViewModel): RecyclerView.Adapter<ContactsAdapter.ViewHolder>()
+class ContactsAdapter: RecyclerView.Adapter<ContactsAdapter.ViewHolder>()
 {
-    var contacts: List<Contact> = listOf()
-    set(value) {
-        notifyDataSetChanged()
-        field = value
-    }
+    val contacts = mutableListOf<Contact>()
+    val selectedContacts = mutableListOf<Contact>()
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view)
     {
         val holder: CardView = view.contact_holder
         val name: TextView = view.contact_name
-        val amount: TextView = view.contact_amount
+        val phone: TextView = view.contact_second_text
         val image: ImageView = view.contact_image
+
+        init
+        {
+            holder.setOnClickListener { contactOnClickListener(adapterPosition) }
+        }
+    }
+
+    private fun contactOnClickListener(position: Int)
+    {
+        val contact = contacts[position]
+        when (selectedContacts.contains(contact))
+        {
+            true -> selectedContacts.remove(contact)
+            false -> selectedContacts.add(contact)
+        }
+
+        notifyDataSetChanged()
+    }
+
+    override fun getItemCount(): Int
+    {
+        return contacts.size
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
@@ -31,15 +50,15 @@ class ContactsAdapter(private val vm: ContactsViewModel): RecyclerView.Adapter<C
         return ViewHolder(view)
     }
 
-    override fun getItemCount(): Int
-    {
-        return contacts.size
-    }
-
     override fun onBindViewHolder(holder: ViewHolder, position: Int)
     {
         val contact = contacts[position]
         holder.name.text = contact.name
-        holder.amount.text = vm.getAmount(contact).toString()
+        holder.phone.text = contact.phone
+
+        holder.image.setImageResource(when (selectedContacts.contains(contact)) {
+            true -> R.drawable.ic_contact_selected_round
+            false -> R.drawable.ic_contact_round
+        })
     }
 }

@@ -31,7 +31,9 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
         const val PICK_CONTACT_CODE = 32
     }
 
-    private lateinit var vm: ContactsViewModel
+    private var shouldOpenFragment = false
+
+    private lateinit var vm: DicomViewModel
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -41,16 +43,17 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
 
         checkPermissions()
 
-        vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
+        vm = ViewModelProviders.of(this).get(DicomViewModel::class.java)
 
-        val adapter = ContactsAdapter(vm)
+        val adapter = DicomAdapter(vm)
         contact_list.adapter = adapter
         contact_list.layoutManager = LinearLayoutManager(this)
 
         vm.contactList.observe(this, Observer { adapter.contacts = it })
         vm.totalAmount.observe(this, Observer { Log.i(TAG, "total amount = $it") })
+        vm.selectedContact.observe(this, Observer { it?.apply { createExpense(this) } })
 
-        fab.setOnClickListener { createExpense() }
+        fab.setOnClickListener { /*pickContacts()*/ displayContacts() }
     }
 
     private fun checkPermissions()
@@ -62,9 +65,31 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
         }
     }
 
+    private fun pickContacts()
+    {
+        val contactIntent = Intent(Intent.ACTION_PICK)
+        val data = ContactsContract.Contacts.CONTENT_URI
+        val type = ContactsContract.CommonDataKinds.Phone.CONTENT_TYPE
+
+        contactIntent.setDataAndType(data, type)
+        startActivityForResult(contactIntent, MainActivity.PICK_CONTACT_CODE)
+    }
+
     private fun createExpense()
     {
         val expenseDialog = ExpenseDialog()
+        expenseDialog.show(supportFragmentManager, EXPENSE_DIALOG_TAG)
+    }
+
+    private fun createExpense(contact: Contact)
+    {
+        val args = Bundle()
+        args.putString("name", contact.name)
+        args.putString("phone", contact.phone)
+
+        val expenseDialog = ExpenseDialog()
+        expenseDialog.arguments = args
+
         expenseDialog.show(supportFragmentManager, EXPENSE_DIALOG_TAG)
     }
 
@@ -90,10 +115,19 @@ class MainActivity : AppCompatActivity(), LifecycleOwner
             val name = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
             val number = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
 
-            vm.createExpense(name, number)
+            //vm.createExpense(name, number)
 
             close()
+
+            Log.i(TAG, "setting selectedContact")
+            vm.selectedContact.value = Contact(name, number)
+            //createExpense()
         }
+    }
+
+    private fun displayContacts()
+    {
+        startActivity(Intent(this, ContactsActivity::class.java))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)

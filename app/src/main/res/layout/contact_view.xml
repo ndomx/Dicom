@@ -42,7 +42,7 @@
                         tools:text="Nicolas Dominguez"/>
 
                 <TextView
-                        android:id="@+id/contact_amount"
+                        android:id="@+id/contact_second_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
 

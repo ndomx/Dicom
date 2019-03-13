@@ -7,4 +7,6 @@
     <string name="input_amount">Amount</string>
     <string name="date_pick_label">Wasn\'t today?\nPick a date</string>
     <string name="user_paid">You paid</string>
+    <string name="title_activity_contacts">ContactsActivity</string>
+    <string name="action_next">Next</string>
 </resources>
