@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         vm.contactList.observe(this, Observer { adapter.contacts = it })
         vm.totalAmount.observe(this, Observer { updateActionBar(it) })
 
+        vm.selectedContact.observe(this, Observer { startContactActivity(it) })
+
         fab.setOnClickListener { startExpenseCreator() }
     }
 
@@ -63,6 +65,17 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
             null -> "No expenses yet"
             else -> "Total amount: $amount"
         }
+    }
+
+    private fun startContactActivity(contact: Contact?)
+    {
+        if (contact == null) return
+
+        val intent = Intent(this, SingleContactActivity::class.java)
+        intent.putExtra("name", contact.name)
+        intent.putExtra("phone", contact.phone)
+
+        startActivity(intent)
     }
 
     private fun checkPermissions()
@@ -92,13 +105,11 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         adapter.contacts = when (index) {
             0 -> adapter.contacts.sortedBy { it.name }
             1 -> adapter.contacts.sortedByDescending { it.name }
-            2 -> adapter.contacts.sortedBy { vm.newestExpense(it) }
-            3 -> adapter.contacts.sortedByDescending { vm.oldestExpense(it) }
+            2 -> adapter.contacts.sortedByDescending { vm.newestExpense(it) }
+            3 -> adapter.contacts.sortedBy { vm.oldestExpense(it) }
             4 -> adapter.contacts.sortedBy { vm.getAmount(it) }
             else -> adapter.contacts.sortedByDescending { vm.getAmount(it) }
         }
-
-
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)

@@ -16,6 +16,9 @@ interface ExpensesDao
     @Query("SELECT * FROM expenses WHERE contactId = :phone ORDER BY date DESC")
     fun getAllExpenses(phone: String): List<Expense>
 
+    @Query("SELECT * FROM expenses WHERE contactId = :phone ORDER BY date DESC")
+    fun getExpenses(phone: String): LiveData<List<Expense>>
+
     @Query("SELECT * FROM expenses WHERE amount > 0")
     fun getPositiveExpenses(): List<Expense>
 
@@ -30,6 +33,9 @@ interface ExpensesDao
 
     @Query("SELECT SUM(amount) FROM expenses")
     fun getTotalAmount(): LiveData<Int>
+
+    @Query("SELECT SUM(amount) FROM expenses WHERE contactId = :phone")
+    fun getTotalAmount(phone: String): LiveData<Int>
 
     @Query("SELECT SUM(amount) FROM expenses WHERE contactId = :phone")
     fun getAmount(phone: String): Int

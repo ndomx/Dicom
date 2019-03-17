@@ -1,6 +1,7 @@
 package com.ndomx.dicom
 
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -21,26 +22,30 @@ abstract class DicomDatabase : RoomDatabase()
         {
             if (INSTANCE == null)
             {
-                /*
-                INSTANCE = Room.databaseBuilder(context.applicationContext, DicomDatabase::class.java, "sb")
-                    .allowMainThreadQueries()
-                    .build()
-                    */
-                INSTANCE = Room.inMemoryDatabaseBuilder(
-                    context.applicationContext,
-                    DicomDatabase::class.java
-                )
+                INSTANCE = Room.databaseBuilder(context.applicationContext, DicomDatabase::class.java, DatabaseName)
                     .allowMainThreadQueries()
                     .build()
             }
 
             return INSTANCE!!
         }
+
+        private val DatabaseName = "dicom.db"
     }
 
-    fun getExpensesByContact(contact: Contact): List<Expense>
+    private fun expensesByContact(contact: Contact): List<Expense>
     {
         return expensesDao.getAllExpenses(contact.phone)
+    }
+
+    fun contactExpenses(contact: Contact): LiveData<List<Expense>>
+    {
+        return expensesDao.getExpenses(contact.phone)
+    }
+
+    fun contactAmount(contact: Contact): LiveData<Int>
+    {
+        return expensesDao.getTotalAmount(contact.phone)
     }
 
     fun getAmountByContact(contact: Contact): Int
@@ -58,13 +63,6 @@ abstract class DicomDatabase : RoomDatabase()
         return expensesDao.getNewestExpenseDate(contact.phone)
     }
 
-    fun deleteContact(contact: Contact)
-    {
-        val expenses = getExpensesByContact(contact)
-        expensesDao.deleteExpenses(*expenses.toTypedArray())
-        contactsDao.deleteContacts(contact)
-    }
-
     fun addContacts(contacts: List<Contact>)
     {
         contactsDao.addContacts(*contacts.toTypedArray())
@@ -73,5 +71,17 @@ abstract class DicomDatabase : RoomDatabase()
     fun addExpenses(expenses: List<Expense>)
     {
         expensesDao.addExpenses(*expenses.toTypedArray())
+    }
+
+    fun deleteContact(contact: Contact)
+    {
+        val expenses = expensesByContact(contact)
+        expensesDao.deleteExpenses(*expenses.toTypedArray())
+        contactsDao.deleteContacts(contact)
+    }
+
+    fun deleteExpenses(expenses: List<Expense>)
+    {
+        expensesDao.deleteExpenses(*expenses.toTypedArray())
     }
 }

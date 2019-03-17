@@ -1,10 +1,13 @@
 package com.ndomx.dicom
 
 import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
@@ -14,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 
 import kotlinx.android.synthetic.main.activity_contacts.*
 import kotlinx.android.synthetic.main.content_contacts.*
+import java.lang.Exception
 
 class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.DialogListener
 {
@@ -33,6 +37,7 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
         setSupportActionBar(toolbar)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Choose contacts"
 
         vm = ViewModelProviders.of(this).get(ContactsViewModel::class.java)
 
@@ -41,6 +46,8 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
         contact_list.layoutManager = LinearLayoutManager(this)
 
         vm.count.observe(this, Observer { updateCount(it) })
+
+        fab.setOnClickListener { view -> showExpenseDialog(view) }
     }
 
     override fun onStart()
@@ -51,9 +58,7 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
 
     private fun updateCount(count: Int?)
     {
-        /*
-        labelText = "Selected ${count ?: 0}"
-         */
+        supportActionBar?.subtitle = "Selected ${count ?: 0}"
         adapter.notifyDataSetChanged()
     }
 
@@ -77,9 +82,15 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
                 val phoneCursor = contentResolver.query(phoneUri, null, contactQuery, arrayOf(id), null)
                 phoneCursor?.apply {
                     moveToFirst()
-                    number = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-
-                    vm.contacts.add(Contact(name, number))
+                    try
+                    {
+                        number = getString(getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                        vm.contacts.add(Contact(name, number))
+                    }
+                    catch (e: Exception)
+                    {
+                        Log.e(TAG, "Error with $id: $name")
+                    }
 
                     close()
                 }
@@ -91,11 +102,11 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
         adapter.notifyDataSetChanged()
     }
 
-    private fun showExpenseDialog()
+    private fun showExpenseDialog(view: View)
     {
         if (vm.selectedContacts.isEmpty())
         {
-            Snackbar.make(coordinator_contacts, "Select at least one contact", Snackbar.LENGTH_SHORT).show()
+            Snackbar.make(view, "Select at least one contact", Snackbar.LENGTH_SHORT).show()
         }
         else
         {
@@ -103,22 +114,6 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
             expenseDialog.show(supportFragmentManager, EXPENSE_DIALOG_TAG)
         }
     }
-
-    // region MENU
-    override fun onCreateOptionsMenu(menu: Menu): Boolean
-    {
-        menuInflater.inflate(R.menu.menu_contacts, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean
-    {
-        return when (item.itemId) {
-            R.id.action_next -> { showExpenseDialog(); true }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
-    // endregion
 
     override fun chooseDate()
     {

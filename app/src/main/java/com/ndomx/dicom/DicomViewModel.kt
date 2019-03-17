@@ -17,6 +17,8 @@ class DicomViewModel(application: Application) : AndroidViewModel(application)
     val totalAmount = db.expensesDao.getTotalAmount()
     val contactList = db.contactsDao.getAllContacts()
 
+    val selectedContact = MutableLiveData<Contact>()
+
     fun getAmount(contact: Contact): Int
     {
         return db.getAmountByContact(contact)

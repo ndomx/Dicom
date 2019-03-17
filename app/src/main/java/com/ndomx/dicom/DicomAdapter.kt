@@ -23,6 +23,11 @@ class DicomAdapter(private val vm: DicomViewModel): RecyclerView.Adapter<DicomAd
         val name: TextView = view.contact_name
         val amount: TextView = view.contact_second_text
         val image: ImageView = view.contact_image
+
+        init
+        {
+            holder.setOnClickListener { vm.selectedContact.value = contacts[adapterPosition] }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
