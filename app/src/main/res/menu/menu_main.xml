@@ -17,4 +17,9 @@
           android:title="@string/sort_list"
           android:icon="@drawable/ic_sort_white_24dp"
           app:showAsAction="ifRoom"/>
+
+    <item android:id="@+id/action_clear_db"
+          android:title="@string/delete_all"
+          app:showAsAction="never"
+          android:orderInCategory="200"/>
 </menu>

@@ -26,7 +26,8 @@ class DicomAdapter(private val vm: DicomViewModel): RecyclerView.Adapter<DicomAd
 
         init
         {
-            holder.setOnClickListener { vm.selectedContact.value = contacts[adapterPosition] }
+            holder.setOnClickListener { vm.shortClickContact.value = contacts[adapterPosition] }
+            holder.setOnLongClickListener { vm.longClickContact.value = contacts[adapterPosition]; true }
         }
     }
 
@@ -44,7 +45,10 @@ class DicomAdapter(private val vm: DicomViewModel): RecyclerView.Adapter<DicomAd
     override fun onBindViewHolder(holder: ViewHolder, position: Int)
     {
         val contact = contacts[position]
+
         holder.name.text = contact.name
         holder.amount.text = vm.getAmount(contact).toString()
+
+        if (vm.getAmount(contact) == 0) vm.deleteContact(contact)
     }
 }

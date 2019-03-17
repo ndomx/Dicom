@@ -20,4 +20,7 @@ interface ContactsDao
 
     @Delete
     fun deleteContacts(vararg contacts: Contact)
+
+    @Query("DELETE FROM contacts")
+    fun deleteAll()
 }

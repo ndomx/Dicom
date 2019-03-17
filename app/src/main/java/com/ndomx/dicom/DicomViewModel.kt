@@ -3,6 +3,7 @@ package com.ndomx.dicom
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import java.util.*
 
@@ -17,7 +18,8 @@ class DicomViewModel(application: Application) : AndroidViewModel(application)
     val totalAmount = db.expensesDao.getTotalAmount()
     val contactList = db.contactsDao.getAllContacts()
 
-    val selectedContact = MutableLiveData<Contact>()
+    val shortClickContact = MutableLiveData<Contact>()
+    val longClickContact = MutableLiveData<Contact>()
 
     fun getAmount(contact: Contact): Int
     {
@@ -34,5 +36,13 @@ class DicomViewModel(application: Application) : AndroidViewModel(application)
         return db.getNewestExpenseDate(contact).time
     }
 
+    fun deleteContact(contact: Contact)
+    {
+        db.deleteContact(contact)
+    }
 
+    fun clearDb()
+    {
+        db.deleteAll()
+    }
 }

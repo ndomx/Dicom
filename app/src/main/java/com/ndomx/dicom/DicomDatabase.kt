@@ -84,4 +84,10 @@ abstract class DicomDatabase : RoomDatabase()
     {
         expensesDao.deleteExpenses(*expenses.toTypedArray())
     }
+
+    fun deleteAll()
+    {
+        contactsDao.deleteAll()
+        expensesDao.deleteAll()
+    }
 }

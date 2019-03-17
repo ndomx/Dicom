@@ -57,4 +57,7 @@ interface ExpensesDao
 
     @Delete
     fun deleteExpenses(vararg expenses: Expense)
+
+    @Query("DELETE FROM expenses")
+    fun deleteAll()
 }

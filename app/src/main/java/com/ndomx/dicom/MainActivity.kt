@@ -2,6 +2,7 @@ package com.ndomx.dicom
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -53,7 +54,8 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         vm.contactList.observe(this, Observer { adapter.contacts = it })
         vm.totalAmount.observe(this, Observer { updateActionBar(it) })
 
-        vm.selectedContact.observe(this, Observer { startContactActivity(it) })
+        vm.shortClickContact.observe(this, Observer { startContactActivity(it) })
+        vm.longClickContact.observe(this, Observer { deleteContactDialog(it) })
 
         fab.setOnClickListener { startExpenseCreator() }
     }
@@ -76,6 +78,30 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         intent.putExtra("phone", contact.phone)
 
         startActivity(intent)
+    }
+
+    private fun deleteContactDialog(contact: Contact?)
+    {
+        if (contact == null) return
+
+        AlertDialog.Builder(this)
+            .setTitle("Remove contact")
+            .setMessage("Remove ${contact.name} and all of his expenses?")
+            .setPositiveButton("Yes") { _, _ -> vm.deleteContact(contact) }
+            .setNegativeButton("No") { dialog, _ -> dialog.cancel() }
+            .create()
+            .show()
+    }
+
+    private fun clearDbDialog()
+    {
+        AlertDialog.Builder(this)
+            .setTitle("Clear all expenses")
+            .setMessage("Mark all expenses as paid and remove them?")
+            .setPositiveButton("Yes") { _, _ -> vm.clearDb() }
+            .setNegativeButton("No") { dialog, _ -> dialog.cancel() }
+            .create()
+            .show()
     }
 
     private fun checkPermissions()
@@ -126,7 +152,6 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         }
     }
 
-    // region MENU
     override fun onCreateOptionsMenu(menu: Menu): Boolean
     {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -138,10 +163,10 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
         when (item.itemId) {
             R.id.action_settings -> return true
             R.id.action_sort -> showSortListMenu()
+            R.id.action_clear_db -> clearDbDialog()
             else -> return super.onOptionsItemSelected(item)
         }
 
         return true
     }
-    // endregion
 }

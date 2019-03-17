@@ -43,9 +43,16 @@ class SingleContactViewModel(val contact: Contact, val app: Application) : ViewM
         selectedExpenseCount.value = selectedExpenses.size
     }
 
+    fun clearSelectedExpenses()
+    {
+        selectedExpenses.clear()
+        selectedExpenseCount.value = 0
+    }
+
     fun deleteExpenses()
     {
         db.deleteExpenses(selectedExpenses)
+        clearSelectedExpenses()
     }
 
     fun formatDate(date: Date): String

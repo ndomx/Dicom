@@ -1,6 +1,5 @@
 package com.ndomx.dicom
 
-import android.app.ProgressDialog.show
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -25,6 +24,7 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
 
     private lateinit var vm: SingleContactViewModel
     private lateinit var adapter: SingleContactAdapter
+    private lateinit var menu: Menu
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -71,9 +71,18 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
 
     private fun changeBarTitle(count: Int?)
     {
+        val menuItem = menu.findItem(R.id.action_delete)
         supportActionBar?.title = when (count) {
-            0, null -> vm.contact.name
-            else -> "$count expenses selected"
+            0, null -> {
+                menuItem.isVisible = false
+                menuItem.isEnabled = false
+                vm.contact.name
+            }
+            else -> {
+                menuItem.isVisible = true
+                menuItem.isEnabled = true
+                "$count selected"
+            }
         }
 
         adapter.notifyDataSetChanged()
@@ -92,7 +101,7 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
             .setTitle("Delete expenses")
             .setMessage(msg)
             .setPositiveButton("Yes") { _, _ -> vm.deleteExpenses() }
-            .setNegativeButton("No") { dialog, _ -> dialog.cancel() }
+            .setNegativeButton("No") { dialog, _ -> dialog.cancel(); vm.clearSelectedExpenses() }
             .create()
             .show()
     }
@@ -107,10 +116,10 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
         vm.saveExpense(title, description, amount)
     }
 
-    // region MENU
     override fun onCreateOptionsMenu(menu: Menu): Boolean
     {
         menuInflater.inflate(R.menu.menu_single, menu)
+        this.menu = menu
         return true
     }
 
@@ -124,6 +133,4 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
 
         return true
     }
-    // endregion
-
 }
