@@ -13,6 +13,7 @@ import com.google.android.material.snackbar.Snackbar
 
 import kotlinx.android.synthetic.main.activity_single_contact.*
 import kotlinx.android.synthetic.main.content_single_contact.*
+import java.util.*
 
 class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.DialogListener
 {
@@ -106,14 +107,9 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
             .show()
     }
 
-    override fun chooseDate()
+    override fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
-        TODO("not implemented")
-    }
-
-    override fun saveExpense(title: String, description: String, amount: Int)
-    {
-        vm.saveExpense(title, description, amount)
+        vm.saveExpense(title, description, amount, date)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean

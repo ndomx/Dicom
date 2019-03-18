@@ -24,11 +24,9 @@ class SingleContactViewModel(val contact: Contact, val app: Application) : ViewM
     val selectedExpenseCount = MutableLiveData<Int>()
     val selectedExpenses = mutableListOf<Expense>()
 
-    fun saveExpense(title: String, description: String, amount: Int)
+    fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
         db.contactsDao.addContacts(contact)
-
-        val date = Calendar.getInstance().time
         db.expensesDao.addExpenses(Expense(title, description, contact.phone, amount, date))
     }
 

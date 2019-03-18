@@ -26,11 +26,10 @@ class ContactsViewModel(application: Application) : AndroidViewModel(application
         count.value = selectedContacts.size
     }
 
-    fun saveExpense(title: String, description: String, amount: Int)
+    fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
         db.addContacts(selectedContacts)
         val expenses = mutableListOf<Expense>()
-        val date = Calendar.getInstance().time
 
         selectedContacts.forEach {
             expenses.add(Expense(title, description, it.phone, amount, date))

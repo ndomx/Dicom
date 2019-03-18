@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_contacts.*
 import kotlinx.android.synthetic.main.content_contacts.*
 import java.lang.Exception
+import java.util.*
 
 class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.DialogListener
 {
@@ -115,14 +116,9 @@ class ContactsActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.Dial
         }
     }
 
-    override fun chooseDate()
+    override fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
-        TODO("not implemented")
-    }
-
-    override fun saveExpense(title: String, description: String, amount: Int)
-    {
-        vm.saveExpense(title, description, amount)
+        vm.saveExpense(title, description, amount, date)
         setResult(Activity.RESULT_OK)
         finish()
     }
