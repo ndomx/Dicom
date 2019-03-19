@@ -7,8 +7,8 @@
             <size
                     android:width="@dimen/round_icon_size"
                     android:height="@dimen/round_icon_size" />
-            <solid android:color="#1B5E20"/>
+            <solid android:color="#FFFFFF"/>
         </shape>
     </item>
-    <item android:drawable="@drawable/ic_attach_money_white_24dp"/>
+    <item android:drawable="@drawable/ic_arrow_upward_green_24dp"/>
 </layer-list>

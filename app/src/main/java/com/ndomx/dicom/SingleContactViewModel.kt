@@ -1,10 +1,7 @@
 package com.ndomx.dicom
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,11 +15,21 @@ class SingleContactViewModel(val contact: Contact, val app: Application) : ViewM
 
     private val db = DicomDatabase.getInstance(app)
 
-    val totalAmount: LiveData<Int> = db.contactAmount(contact)
+    val totalAmount = MediatorLiveData<Int>()
     val expenseList: LiveData<List<Expense>> = db.contactExpenses(contact)
 
     val selectedExpenseCount = MutableLiveData<Int>()
     val selectedExpenses = mutableListOf<Expense>()
+
+    private val selectedExpensesAmount: Int get() = selectedExpenses.sumBy { it.amount }
+
+    init
+    {
+        totalAmount.addSource(db.contactAmount(contact)) { amount -> totalAmount.value = amount }
+        totalAmount.addSource(selectedExpenseCount) { count ->
+            totalAmount.value = if (count > 0) selectedExpensesAmount else db.getAmountByContact(contact)
+        }
+    }
 
     fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
@@ -56,9 +63,10 @@ class SingleContactViewModel(val contact: Contact, val app: Application) : ViewM
     fun formatDate(date: Date): String
     {
         val df = SimpleDateFormat("dd-MMM-yy")
-        val now = Calendar.getInstance().time.time
+        val now = Calendar.getInstance().timeInMillis
         return when {
-            now - date.time < 60_000 -> "Less than a minute ago"
+            now < date.time -> "In the future..."
+            now - date.time < 60_000 -> "Just now"
             now - date.time < 3_600_000 -> "${(now - date.time)/60_000} minutes ago"
             now - date.time < 21_600_000 -> "${(now - date.time)/3_600_000} hours ago"
             else -> df.format(date)

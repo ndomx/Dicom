@@ -1,10 +1,15 @@
 package com.ndomx.dicom
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -13,6 +18,7 @@ import com.google.android.material.snackbar.Snackbar
 
 import kotlinx.android.synthetic.main.activity_single_contact.*
 import kotlinx.android.synthetic.main.content_single_contact.*
+import java.io.File
 import java.util.*
 
 class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog.DialogListener
@@ -45,7 +51,9 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = contact.name
 
-        vm = ViewModelProviders.of(this, SingleViewModelFactory(contact, application)).get(SingleContactViewModel::class.java)
+        vm = ViewModelProviders
+            .of(this, SingleViewModelFactory(contact, application))
+            .get(SingleContactViewModel::class.java)
 
         adapter = SingleContactAdapter(vm)
         expense_list.adapter = adapter
@@ -74,17 +82,17 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
     {
         val menuItem = menu.findItem(R.id.action_delete)
         supportActionBar?.title = when (count) {
-            0, null -> {
-                menuItem.isVisible = false
-                menuItem.isEnabled = false
-                vm.contact.name
+                0, null -> {
+                    menuItem.isVisible = false
+                    menuItem.isEnabled = false
+                    vm.contact.name
+                }
+                else -> {
+                    menuItem.isVisible = true
+                    menuItem.isEnabled = true
+                    "$count selected"
+                }
             }
-            else -> {
-                menuItem.isVisible = true
-                menuItem.isEnabled = true
-                "$count selected"
-            }
-        }
 
         adapter.notifyDataSetChanged()
     }
@@ -107,6 +115,38 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
             .show()
     }
 
+    private fun saveScreenshot()
+    {
+        fab.isVisible = false
+        val b = Screenshot.takeScreenshot(fab.rootView)
+        fab.isVisible = true
+
+        val f = Screenshot.saveFile(b)
+        shareScreenshot(f)
+    }
+
+    private fun shareScreenshot(file: File)
+    {
+        val uri = Uri.fromFile(file)
+        val intent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/*"
+
+            putExtra(Intent.EXTRA_SUBJECT, "")
+            putExtra(Intent.EXTRA_TEXT, "")
+            putExtra(Intent.EXTRA_STREAM, uri)
+        }
+
+        try
+        {
+            startActivity(Intent.createChooser(intent, "Share expenses"))
+        }
+        catch (e: ActivityNotFoundException)
+        {
+            Snackbar.make(fab, "No app found for sharing", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
     override fun saveExpense(title: String, description: String, amount: Int, date: Date)
     {
         vm.saveExpense(title, description, amount, date)
@@ -124,6 +164,7 @@ class SingleContactActivity : AppCompatActivity(), LifecycleOwner, ExpenseDialog
         when (item.itemId) {
             R.id.action_settings -> return true
             R.id.action_delete -> deleteExpensesDialog()
+            R.id.action_share -> saveScreenshot()
             else -> return super.onOptionsItemSelected(item)
         }
 

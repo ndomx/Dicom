@@ -51,7 +51,8 @@ class SingleContactAdapter(private val vm: SingleContactViewModel) : RecyclerVie
         val expense = expenses[position]
 
         holder.amount.text = abs(expense.amount).toString()
-        holder.description.text = expense.description
+        holder.description.text = if (expense.description.isNotEmpty()) expense.description else "Empty description"
+
         holder.image.setImageResource(when {
             vm.selectedExpenses.contains(expense) -> R.drawable.ic_contact_selected_round
             expense.amount > 0 -> R.drawable.ic_positive_expense_round

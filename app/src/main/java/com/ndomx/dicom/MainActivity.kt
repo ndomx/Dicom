@@ -3,15 +3,22 @@ package com.ndomx.dicom
 import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.Intent.EXTRA_SUBJECT
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -20,6 +27,8 @@ import com.google.android.material.snackbar.Snackbar
 
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import java.io.File
+import java.io.FileOutputStream
 
 class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.DialogListener
 {
@@ -106,10 +115,15 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
 
     private fun checkPermissions()
     {
-        val permission = Manifest.permission.READ_CONTACTS
-        if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED)
+        val readContactPermission = Manifest.permission.READ_CONTACTS
+        val writeFilePermission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+        if (ContextCompat.checkSelfPermission(this, readContactPermission) != PackageManager.PERMISSION_GRANTED)
         {
-            ActivityCompat.requestPermissions(this, arrayOf(permission), READ_CONTACTS_REQUEST_CODE)
+            ActivityCompat.requestPermissions(this, arrayOf(readContactPermission), READ_CONTACTS_REQUEST_CODE)
+        }
+        if (ContextCompat.checkSelfPermission(this, writeFilePermission) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(this, arrayOf(writeFilePermission), 78)
         }
     }
 
@@ -122,6 +136,38 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
     {
         val sortContactsDialog = SortContactsDialog()
         sortContactsDialog.show(supportFragmentManager, SHOW_SORTING_OPTIONS)
+    }
+
+    private fun saveScreenshot()
+    {
+        fab.isVisible = false
+        val b = Screenshot.takeScreenshot(fab.rootView)
+        fab.isVisible = true
+
+        val f = Screenshot.saveFile(b)
+        shareScreenshot(f)
+    }
+
+    private fun shareScreenshot(file: File)
+    {
+        val uri = Uri.fromFile(file)
+        val intent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "image/*"
+
+            putExtra(Intent.EXTRA_SUBJECT, "")
+            putExtra(Intent.EXTRA_TEXT, "")
+            putExtra(Intent.EXTRA_STREAM, uri)
+        }
+
+        try
+        {
+            startActivity(Intent.createChooser(intent, "Share expenses"))
+        }
+        catch (e: ActivityNotFoundException)
+        {
+            Snackbar.make(fab, "No app found for sharing", Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     override fun optionSelected(index: Int)
@@ -164,6 +210,7 @@ class MainActivity : AppCompatActivity(), LifecycleOwner, SortContactsDialog.Dia
             R.id.action_settings -> return true
             R.id.action_sort -> showSortListMenu()
             R.id.action_clear_db -> clearDbDialog()
+            R.id.action_share -> saveScreenshot()
             else -> return super.onOptionsItemSelected(item)
         }
 
