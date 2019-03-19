@@ -1,5 +1,9 @@
 # Dicom
-A simple Android app to help you keep track of who owes you money
+A simple Android app to help you keep track of who owes you money.
+
+**Features**
+- Kotlin
+- LiveData + Room
 
 **Things this app is capable of**
 - Assign expenses to stored contacts (with phone number) :heavy_check_mark:
